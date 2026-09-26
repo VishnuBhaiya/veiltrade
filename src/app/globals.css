@@ -98,3 +98,57 @@ body{
 .innovation-flow{background:linear-gradient(90deg,rgba(55,217,255,.04),rgba(154,108,255,.045),rgba(102,242,214,.035))}
 @media(max-width:1150px){.settlement-stepper{grid-template-columns:repeat(3,1fr)}.settlement-grid{grid-template-columns:1fr}.disclosure-metrics{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.access-gate-form{grid-template-columns:1fr}.settlement-stepper{grid-template-columns:1fr}.disclosure-metrics{grid-template-columns:1fr}.counterparty-grid{grid-template-columns:1fr}}
+
+
+/* === Aurora Institutional Markets === */
+:root{
+  --aqua:#53f6dc;
+  --sky:#4cc9ff;
+  --iris:#8e72ff;
+  --purple:#bd6dff;
+  --rose:#ff7196;
+  --gold:#ffc85c;
+  --ink:#030711;
+}
+body{
+  background:
+    radial-gradient(circle at 5% 0%,rgba(76,201,255,.15),transparent 24%),
+    radial-gradient(circle at 72% 2%,rgba(142,114,255,.17),transparent 26%),
+    radial-gradient(circle at 100% 50%,rgba(189,109,255,.08),transparent 30%),
+    radial-gradient(circle at 38% 100%,rgba(83,246,220,.08),transparent 26%),
+    linear-gradient(180deg,#030611 0%,#071127 45%,#040914 100%);
+}
+.app-nav{background:linear-gradient(90deg,rgba(3,7,17,.93),rgba(8,12,30,.9));}
+.sidebar{background:linear-gradient(180deg,rgba(5,12,29,.96),rgba(7,11,25,.92));}
+.main{position:relative}
+.main::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:46px 46px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.4),transparent 80%);z-index:-1}
+.panel,.card,.metric{border-color:rgba(142,177,255,.13);background:linear-gradient(165deg,rgba(16,28,59,.88),rgba(7,14,34,.84));}
+.panel{box-shadow:0 26px 80px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.03)}
+.market-switcher{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.market-card{position:relative;overflow:hidden;text-align:left;padding:16px;border:1px solid rgba(157,186,245,.13);border-radius:20px;background:linear-gradient(145deg,rgba(13,25,55,.88),rgba(8,15,35,.78));color:var(--text);cursor:pointer;transition:.2s ease;min-height:150px}
+.market-card::before{content:"";position:absolute;width:130px;height:130px;border-radius:50%;right:-55px;top:-55px;filter:blur(8px);opacity:.16}
+.market-card:hover{transform:translateY(-3px);border-color:rgba(98,231,228,.28);box-shadow:0 20px 50px rgba(0,0,0,.18)}
+.market-card.active{border-color:rgba(102,242,214,.45);box-shadow:0 0 0 1px rgba(102,242,214,.12),0 22px 60px rgba(42,218,209,.08)}
+.market-aqua::before{background:var(--aqua)}.market-violet::before{background:var(--iris)}.market-amber::before{background:var(--gold)}.market-blue::before{background:var(--sky)}
+.market-card-top,.market-card-foot{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.market-logo{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.055);color:#cdeeff;border:1px solid rgba(255,255,255,.06)}
+.market-live{display:flex;align-items:center;gap:6px;color:#9ab0cc;font-size:9px;font-weight:900;letter-spacing:.1em}.market-live span{width:6px;height:6px;border-radius:50%;background:var(--aqua);box-shadow:0 0 10px var(--aqua)}
+.market-card>strong{display:block;margin-top:17px;font-size:22px;letter-spacing:-.04em}.market-card>strong small{margin-left:5px;color:#7590af;font-size:11px;font-weight:700}.market-card>span{display:block;margin-top:3px;color:#92a8c1;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.market-card-foot{margin-top:15px}.market-card-foot b{font-size:13px}.market-card-foot small{max-width:55%;color:#6f86a3;font-size:9px;text-align:right}
+.market-context{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 15px;margin-bottom:14px;border-radius:16px;border:1px solid rgba(100,211,255,.12);background:linear-gradient(90deg,rgba(76,201,255,.045),rgba(142,114,255,.035));}
+.market-context>div:first-child{display:flex;align-items:center;gap:10px;color:#6aeed9}.market-context b,.market-context small{display:block}.market-context small{margin-top:2px;color:#8097b3;font-size:10px}.market-context-stats{display:flex;gap:24px}.market-context-stats span{text-align:right}.market-context-stats b{margin-top:3px;font-size:11px}
+.metric{position:relative;overflow:hidden}.metric::after{content:"";position:absolute;right:-35px;bottom:-45px;width:105px;height:105px;border-radius:50%;filter:blur(4px);opacity:.08}
+.metric-cyan::after{background:var(--sky)}.metric-rose::after{background:var(--rose)}.metric-violet::after{background:var(--iris)}.metric-gold::after{background:var(--gold)}
+.metric-cyan strong{color:#bceeff}.metric-rose strong{color:#ffd0da}.metric-violet strong{color:#dcd3ff}.metric-gold strong{color:#ffe0a0}
+.order-ticket{border-color:rgba(142,114,255,.18)}
+.fund-pill{display:inline-flex;align-items:center;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.04em;border:1px solid transparent}.fund-pill.mini{padding:4px 7px;font-size:9px}
+.fund-aqua{color:#9ff8e7;background:rgba(83,246,220,.07);border-color:rgba(83,246,220,.18)}.fund-violet{color:#d5caff;background:rgba(142,114,255,.08);border-color:rgba(142,114,255,.2)}.fund-amber{color:#ffe1a0;background:rgba(255,200,92,.08);border-color:rgba(255,200,92,.2)}.fund-blue{color:#bfeeff;background:rgba(76,201,255,.07);border-color:rgba(76,201,255,.18)}
+.market-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}.market-tabs.compact{grid-template-columns:repeat(4,minmax(0,1fr))}
+.market-tab{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:8px;padding:11px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(9,18,39,.72);color:#92a7c0;cursor:pointer;text-align:left}.market-tab:hover{border-color:rgba(76,201,255,.23)}.market-tab.active{color:#fff;background:linear-gradient(135deg,rgba(83,246,220,.07),rgba(142,114,255,.07));border-color:rgba(83,246,220,.25);box-shadow:inset 0 0 20px rgba(76,201,255,.025)}.market-tab b{font-size:12px}.market-tab small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:9px;color:#7086a2}
+.asset-dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 14px currentColor}.asset-dot.aqua{background:var(--aqua);color:var(--aqua)}.asset-dot.violet{background:var(--iris);color:var(--iris)}.asset-dot.amber{background:var(--gold);color:var(--gold)}.asset-dot.blue{background:var(--sky);color:var(--sky)}.asset-dot.prism{background:linear-gradient(135deg,var(--aqua),var(--iris));color:var(--sky)}
+.admin-tabs{display:flex;gap:8px;margin:16px 0}.admin-tabs button{display:flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid var(--line);border-radius:13px;background:rgba(7,16,35,.68);color:#8298b4;cursor:pointer;font-weight:800}.admin-tabs button.active{color:#fff;border-color:rgba(83,246,220,.24);background:linear-gradient(135deg,rgba(83,246,220,.07),rgba(142,114,255,.07))}.admin-tabs button span{display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:7px;background:rgba(255,255,255,.055);font-size:9px}
+.fund-admin-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:16px 0 12px}.fund-admin-head h2{margin:0;font-size:22px}.fund-admin-head p{margin:4px 0 0;color:var(--muted);font-size:11px}
+.fund-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.fund-admin-card{position:relative;overflow:hidden;padding:17px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(160deg,rgba(16,29,60,.88),rgba(7,14,31,.86));}.fund-admin-card::after{content:"";position:absolute;width:120px;height:120px;right:-50px;top:-50px;border-radius:50%;opacity:.09}.fund-admin-card.fund-aqua::after{background:var(--aqua)}.fund-admin-card.fund-violet::after{background:var(--iris)}.fund-admin-card.fund-amber::after{background:var(--gold)}.fund-admin-card.paused{filter:saturate(.45);opacity:.72}.fund-card-orb{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.05);color:#d4efff}.fund-card-title{display:flex;justify-content:space-between;gap:12px;margin-top:13px}.fund-card-title span:first-child{font-size:10px;color:#7d96b4}.fund-card-title h3{margin:3px 0 0;font-size:15px}.fund-admin-card>p{min-height:48px;color:#8299b4;font-size:10px;line-height:1.55}.fund-card-meta{display:grid;grid-template-columns:1fr 1.4fr .65fr;gap:8px;padding:10px 0;margin:9px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.fund-card-meta small,.fund-card-meta b{display:block}.fund-card-meta small{color:#607895;font-size:8px;text-transform:uppercase;letter-spacing:.07em}.fund-card-meta b{margin-top:3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modal-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:rgba(1,4,12,.74);backdrop-filter:blur(12px)}.fund-modal{width:min(720px,100%);max-height:90vh;overflow:auto;padding:22px;border-radius:24px;border:1px solid rgba(154,183,255,.18);background:linear-gradient(160deg,#101c3a,#071126 75%);box-shadow:0 35px 120px rgba(0,0,0,.55)}.fund-modal-head{display:flex;align-items:start;justify-content:space-between}.fund-modal-head h2{margin:7px 0 0;font-size:30px}.icon-button{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:#b8c9dd;cursor:pointer}.fund-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 13px;margin-top:15px}.span-2{grid-column:span 2}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}
+@media(max-width:1050px){.market-switcher,.fund-admin-grid{grid-template-columns:1fr 1fr}.market-tabs.compact{grid-template-columns:1fr 1fr}.market-context{align-items:flex-start;flex-direction:column}.market-context-stats{width:100%;justify-content:space-between}.market-context-stats span{text-align:left}}
+@media(max-width:720px){.market-switcher,.fund-admin-grid,.market-tabs,.market-tabs.compact{grid-template-columns:1fr}.fund-form-grid{grid-template-columns:1fr}.span-2{grid-column:auto}.fund-admin-head{align-items:flex-start;flex-direction:column}}
