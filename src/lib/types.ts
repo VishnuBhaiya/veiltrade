@@ -14,9 +14,14 @@ export interface Asset {
   id: string;
   symbol: string;
   name: string;
+  description?: string;
+  issuer?: string;
   contractAddress?: string;
   decimals: number;
   assetType: 'RWA' | 'STABLECOIN';
+  active: boolean;
+  indicativePrice?: number;
+  createdAt?: string;
 }
 
 export interface PrivateOrderPayload {
