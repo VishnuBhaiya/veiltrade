@@ -1,0 +1,7 @@
+[package]
+name = "veiltrade_private_trade"
+type = "bin"
+authors = ["Team VeilForge"]
+compiler_version = ">=1.0.0"
+
+[dependencies]
