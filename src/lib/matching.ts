@@ -6,40 +6,62 @@ function makeCommitment(parts: Array<string | number>) {
 }
 
 function matchAsset(orders: Order[], assetId: string): MatchResult[] {
-  const buys = orders.filter((o) => o.assetId === assetId && o.side === 'BUY' && ['OPEN', 'PARTIAL'].includes(o.status))
+  const buys = orders
+    .filter((o) => o.assetId === assetId && o.side === 'BUY' && ['OPEN', 'PARTIAL'].includes(o.status))
     .sort((a, b) => b.price - a.price || +new Date(a.createdAt) - +new Date(b.createdAt));
-  const sells = orders.filter((o) => o.assetId === assetId && o.side === 'SELL' && ['OPEN', 'PARTIAL'].includes(o.status))
+
+  const sells = orders
+    .filter((o) => o.assetId === assetId && o.side === 'SELL' && ['OPEN', 'PARTIAL'].includes(o.status))
     .sort((a, b) => a.price - b.price || +new Date(a.createdAt) - +new Date(b.createdAt));
+
   const matches: MatchResult[] = [];
 
-  let bi = 0;
-  let si = 0;
-  while (bi < buys.length && si < sells.length) {
-    const buy = buys[bi];
-    const sell = sells[si];
-    if (buy.price < sell.price) break;
+  while (true) {
+    let chosenBuy: Order | undefined;
+    let chosenSell: Order | undefined;
 
-    const quantity = Math.min(buy.remainingQuantity, sell.remainingQuantity);
-    const price = Number(((buy.price + sell.price) / 2).toFixed(4));
+    // Find the best crossing pair while explicitly preventing self-matches.
+    outer:
+    for (const buy of buys) {
+      if (buy.remainingQuantity <= 0 || !['OPEN', 'PARTIAL'].includes(buy.status)) continue;
+      for (const sell of sells) {
+        if (sell.remainingQuantity <= 0 || !['OPEN', 'PARTIAL'].includes(sell.status)) continue;
+        if (buy.price < sell.price) break;
+        if (buy.walletAddress.toLowerCase() === sell.walletAddress.toLowerCase()) continue;
+        chosenBuy = buy;
+        chosenSell = sell;
+        break outer;
+      }
+    }
+
+    if (!chosenBuy || !chosenSell) break;
+
+    const quantity = Math.min(chosenBuy.remainingQuantity, chosenSell.remainingQuantity);
+    const price = Number(((chosenBuy.price + chosenSell.price) / 2).toFixed(4));
     const paymentAmount = Number((quantity * price).toFixed(2));
     const createdAt = new Date().toISOString();
     const id = randomUUID();
 
     matches.push({
-      id, buyOrderId: buy.id, sellOrderId: sell.id, assetId,
-      buyerWallet: buy.walletAddress, sellerWallet: sell.walletAddress,
-      quantity, price, paymentAmount,
-      commitment: makeCommitment([id, buy.id, sell.id, quantity, price, createdAt]),
+      id,
+      buyOrderId: chosenBuy.id,
+      sellOrderId: chosenSell.id,
+      assetId,
+      buyerWallet: chosenBuy.walletAddress,
+      sellerWallet: chosenSell.walletAddress,
+      quantity,
+      price,
+      paymentAmount,
+      commitment: makeCommitment([id, chosenBuy.id, chosenSell.id, quantity, price, createdAt]),
       createdAt,
     });
 
-    buy.remainingQuantity -= quantity;
-    sell.remainingQuantity -= quantity;
-    buy.status = buy.remainingQuantity === 0 ? 'MATCHED' : 'PARTIAL';
-    sell.status = sell.remainingQuantity === 0 ? 'MATCHED' : 'PARTIAL';
-    if (buy.remainingQuantity === 0) bi += 1;
-    if (sell.remainingQuantity === 0) si += 1;
+    chosenBuy.remainingQuantity -= quantity;
+    chosenSell.remainingQuantity -= quantity;
+    chosenBuy.status = chosenBuy.remainingQuantity === 0 ? 'MATCHED' : 'PARTIAL';
+    chosenSell.status = chosenSell.remainingQuantity === 0 ? 'MATCHED' : 'PARTIAL';
   }
+
   return matches;
 }
 
