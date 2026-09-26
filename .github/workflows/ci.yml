@@ -21,5 +21,11 @@ jobs:
         run: npm run build
       - name: Compile smart contracts
         run: npm run contracts:compile
+      - name: Upload contract artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: veiltrade-contract-artifacts
+          path: artifacts/contracts
+          retention-days: 1
       - name: Run contract tests
         run: npm run contracts:test
