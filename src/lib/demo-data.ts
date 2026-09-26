@@ -7,8 +7,50 @@ export const demoInstitutions: Institution[] = [
 ];
 
 export const demoAssets: Asset[] = [
-  { id: 'asset-vtbill', symbol: 'vTBILL', name: 'Veil Treasury Fund', decimals: 18, assetType: 'RWA' },
-  { id: 'asset-usdc', symbol: 'vUSDC', name: 'Mock USD Coin', decimals: 6, assetType: 'STABLECOIN' },
+  {
+    id: 'asset-vtbill',
+    symbol: 'vTBILL',
+    name: 'Veil Tokenized Treasury Fund',
+    description: 'Tokenized short-duration treasury exposure for institutional settlement demos.',
+    issuer: 'Veil Asset Management',
+    decimals: 18,
+    assetType: 'RWA',
+    active: true,
+    indicativePrice: 10.11,
+  },
+  {
+    id: 'asset-vmmf',
+    symbol: 'vMMF',
+    name: 'Veil Money Market Fund',
+    description: 'Tokenized money-market strategy for institutional treasury management.',
+    issuer: 'Veil Asset Management',
+    decimals: 18,
+    assetType: 'RWA',
+    active: true,
+    indicativePrice: 25.40,
+  },
+  {
+    id: 'asset-vbond',
+    symbol: 'vBOND',
+    name: 'Veil Investment Grade Bond Fund',
+    description: 'Tokenized diversified investment-grade bond exposure.',
+    issuer: 'Veil Asset Management',
+    decimals: 18,
+    assetType: 'RWA',
+    active: true,
+    indicativePrice: 48.75,
+  },
+  {
+    id: 'asset-usdc',
+    symbol: 'vUSDC',
+    name: 'Mock USD Coin',
+    description: 'Mock USD settlement token for the VeilTrade hackathon environment.',
+    issuer: 'Veil Settlement Labs',
+    decimals: 6,
+    assetType: 'STABLECOIN',
+    active: true,
+    indicativePrice: 1,
+  },
 ];
 
 export const demoOrders: Order[] = [
