@@ -18,14 +18,14 @@ export function consumeNonce(address: string, nonce: string) {
   return record.address === address.toLowerCase() && record.expires >= Date.now();
 }
 
-export function buildLoginMessage(address: string, nonce: string) {
+export function buildLoginMessage(address: string, nonce: string, uri: string) {
   return [
     'VeilTrade wants you to sign in with your Ethereum account:',
     address,
     '',
     'Authenticate to the VeilTrade institutional demo.',
     '',
-    `URI: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}`,
+    `URI: ${uri}`,
     'Version: 1',
     'Chain ID: 133',
     `Nonce: ${nonce}`,

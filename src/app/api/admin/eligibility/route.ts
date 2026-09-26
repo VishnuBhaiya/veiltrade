@@ -8,13 +8,20 @@ const Input = z.object({
   kycLevel: z.number().int().min(0).max(4),
 });
 
+function expectedAdminKey() {
+  const configured = process.env.ADMIN_DEMO_KEY;
+  if (configured) return configured;
+  return process.env.NODE_ENV === 'development' ? 'veiltrade-admin-demo' : null;
+}
+
 export async function GET() {
   return NextResponse.json({ institutions: await listInstitutions() });
 }
 
 export async function POST(req: NextRequest) {
-  const key = req.headers.get('x-admin-key');
-  if (key !== (process.env.ADMIN_DEMO_KEY || 'veiltrade-admin-demo')) {
+  const expected = expectedAdminKey();
+  if (!expected) return NextResponse.json({ error: 'admin access is not configured' }, { status: 503 });
+  if (req.headers.get('x-admin-key') !== expected) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const parsed = Input.safeParse(await req.json());

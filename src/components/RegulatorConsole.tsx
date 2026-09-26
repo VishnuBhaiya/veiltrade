@@ -10,7 +10,7 @@ type Row = {
 const short=(v:string)=>v?`${v.slice(0,9)}…${v.slice(-7)}`:'—';
 
 export function RegulatorConsole(){
-  const [key,setKey]=useState('veiltrade-regulator-demo');
+  const [key,setKey]=useState(process.env.NODE_ENV==='development'?'veiltrade-regulator-demo':'');
   const [rows,setRows]=useState<Row[]>([]);
   const [error,setError]=useState('');
   const [revealed,setRevealed]=useState(false);
@@ -31,9 +31,8 @@ export function RegulatorConsole(){
           <div className="card"><small className="muted">Settlement proof</small><strong style={{color:'#9ff1d5'}}>VERIFIABLE</strong></div>
         </div>
       </section>
-      <section className="panel"><div className="panel-head"><div><div className="panel-title">Regulator access</div><div className="panel-sub">Demo authorization key</div></div><KeyRound size={17} color="#76f7d2"/></div><div className="form"><label className="label">Disclosure key</label><input className="input" type="password" value={key} onChange={e=>setKey(e.target.value)}/><button className="btn btn-primary" style={{width:'100%',marginTop:12}} onClick={unlock}><Eye size={14}/> Authorize disclosure</button>{error&&<div className="error">{error}</div>}</div></section>
+      <section className="panel"><div className="panel-head"><div><div className="panel-title">Regulator access</div><div className="panel-sub">Authorization key stored only in deployment environment</div></div><KeyRound size={17} color="#76f7d2"/></div><div className="form"><label className="label">Disclosure key</label><input className="input" type="password" placeholder="Enter REGULATOR_DEMO_KEY" value={key} onChange={e=>setKey(e.target.value)}/><button className="btn btn-primary" style={{width:'100%',marginTop:12}} onClick={unlock} disabled={!key}><Eye size={14}/> Authorize disclosure</button>{error&&<div className="error">{error}</div>}</div></section>
     </div>
-
     <div style={{height:16}}/>
     <section className="panel"><div className="panel-head"><div><div className="panel-title">Authorized trade record</div><div className="panel-sub">Encrypted server-side record revealed only after authorization</div></div><span className={`badge ${revealed?'green':''}`}>{revealed?'DISCLOSED':'LOCKED'}</span></div>
       <div className="table-wrap"><table><thead><tr><th>Trade</th><th>Buyer</th><th>Seller</th><th>Quantity</th><th>Payment</th><th>Status</th></tr></thead><tbody>

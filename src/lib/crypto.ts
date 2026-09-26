@@ -3,6 +3,9 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypt
 function key() {
   const raw = process.env.VEILTRADE_ENCRYPTION_KEY;
   if (raw && /^[0-9a-fA-F]{64}$/.test(raw)) return Buffer.from(raw, 'hex');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('VEILTRADE_ENCRYPTION_KEY must be a 64-character hex value in production');
+  }
   return createHash('sha256').update(process.env.SESSION_SECRET || 'veiltrade-demo-key').digest();
 }
 
