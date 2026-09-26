@@ -5,7 +5,6 @@ import { BadgeCheck, CheckCircle2, ExternalLink, Loader2, LockKeyhole, RefreshCw
 import { parseUnits } from 'viem';
 import { WalletButton } from './WalletButton';
 import { approveOnchainTrade, approveToken, createOnchainTrade, explorerTx, settleOnchainTrade, waitForHskTransaction } from '@/lib/onchain';
-import { buildTradeAccessAuthorization, isFresh } from '@/lib/auth-message';
 
 type Trade = {
   id:string; buyerWallet:string; sellerWallet:string; quantity:number; paymentAmount:number; commitment:`0x${string}`;
@@ -13,7 +12,6 @@ type Trade = {
   buyerAllowanceTxHash?:string; sellerAllowanceTxHash?:string; anchoredTxHash?:string;
   buyerApproved?:boolean; sellerApproved?:boolean; settlementTxHash?:string;
 };
-type AccessAuth={requestId:string;issuedAt:string;signature:string};
 
 const settlement = process.env.NEXT_PUBLIC_SETTLEMENT_CONTRACT as `0x${string}` | undefined;
 const usdc = process.env.NEXT_PUBLIC_MOCK_USDC as `0x${string}` | undefined;
@@ -28,28 +26,10 @@ export function SettlementWorkbench() {
   const [busy,setBusy] = useState('');
   const [lastTx,setLastTx] = useState('');
   const [feedback,setFeedback] = useState('');
-  const [access,setAccess] = useState<AccessAuth|null>(null);
 
-  async function authorize(address:string):Promise<AccessAuth>{
-    if (!window.ethereum) throw new Error('MetaMask is required.');
-    const requestId=crypto.randomUUID();
-    const issuedAt=new Date().toISOString();
-    const message=buildTradeAccessAuthorization(address,requestId,issuedAt);
-    const signature:string=await window.ethereum.request({method:'personal_sign',params:[message,address]});
-    const next={requestId,issuedAt,signature};
-    setAccess(next);
-    return next;
-  }
-
-  async function load(address=account, auth=access){
-    if(!address) return;
-    let current=auth;
-    if(!current||!isFresh(current.issuedAt)) current=await authorize(address);
-    const r=await fetch('/api/trades/mine',{
-      method:'POST',
-      headers:{'content-type':'application/json'},
-      body:JSON.stringify({walletAddress:address,...current}),
-    });
+  async function load(){
+    if(!account) return;
+    const r=await fetch('/api/trades/mine',{cache:'no-store'});
     const j=await r.json();
     if(!r.ok) throw new Error(j.error||'Could not load private trades');
     setTrades(j.trades||[]);
@@ -58,8 +38,7 @@ export function SettlementWorkbench() {
 
   useEffect(()=>{
     if(account){
-      setFeedback('Sign the private-access message once to reveal only trades involving this wallet.');
-      load(account,null).then(()=>setFeedback('Private trade access verified.')).catch((e)=>setFeedback(e.message||'Trade access failed'));
+      load().then(()=>setFeedback('Private trade session active — no extra signature required.')).catch((e)=>setFeedback(e.message||'Trade access failed'));
     }
   },[account]);
 
@@ -84,11 +63,11 @@ export function SettlementWorkbench() {
   },[trade,bothApproved,bothAllowances]);
 
   async function persist(action:'ALLOWANCE'|'ANCHOR'|'APPROVE'|'SETTLE',hash:`0x${string}`){
-    if(!trade||!account) return;
+    if(!trade) return;
     const r=await fetch(`/api/trades/${trade.id}/progress`,{
       method:'POST',
       headers:{'content-type':'application/json'},
-      body:JSON.stringify({walletAddress:account,action,txHash:hash}),
+      body:JSON.stringify({action,txHash:hash}),
     });
     const j=await r.json();
     if(!r.ok) throw new Error(j.error||'Could not persist settlement progress');
@@ -97,7 +76,7 @@ export function SettlementWorkbench() {
 
   async function action(label:string,kind:'ALLOWANCE'|'ANCHOR'|'APPROVE'|'SETTLE',fn:()=>Promise<`0x${string}`>){
     try{
-      setBusy(label);setFeedback(`${label}: waiting for wallet confirmation…`);
+      setBusy(label);setFeedback(`${label}: waiting for wallet transaction confirmation…`);
       const hash=await fn();
       setLastTx(hash);
       setFeedback(`${label}: submitted to HSK, waiting for confirmation…`);
@@ -112,7 +91,7 @@ export function SettlementWorkbench() {
 
   return <div className="content-stack">
     <div className="topline">
-      <div><span className="eyebrow">HSK Chain execution</span><h1 style={{marginTop:14}}>Atomic DvP settlement</h1><p>A guided lifecycle that waits for HSK confirmation and persists each completed step.</p></div>
+      <div><span className="eyebrow">HSK Chain execution</span><h1 style={{marginTop:14}}>Atomic DvP settlement</h1><p>Your wallet signs in once for app access. MetaMask appears here only when a real HSK transaction must be approved.</p></div>
       <WalletButton onAuthenticated={setAccount}/>
     </div>
 
@@ -132,11 +111,11 @@ export function SettlementWorkbench() {
 
     <div className="dashboard-grid settlement-grid">
       <section className="panel premium-panel">
-        <div className="panel-head"><div><div className="panel-title">My matched trades</div><div className="panel-sub">Wallet-signed access reveals only trades where this wallet is a counterparty</div></div><button className="btn btn-sm" onClick={()=>load().catch(e=>setFeedback(e.message))} disabled={!account||!!busy}><RefreshCw size={13}/> Refresh</button></div>
+        <div className="panel-head"><div><div className="panel-title">My matched trades</div><div className="panel-sub">Uses the same 12-hour signed-in session — no second access signature</div></div><button className="btn btn-sm" onClick={()=>load().catch(e=>setFeedback(e.message))} disabled={!account||!!busy}><RefreshCw size={13}/> Refresh</button></div>
         <div className="table-wrap"><table><thead><tr><th>Trade</th><th>Qty</th><th>Payment</th><th>Status</th><th>Commitment</th></tr></thead><tbody>
           {trades.length?trades.map(t=><tr key={t.id} onClick={()=>setSelected(t.id)} className={selected===t.id?'selected-row':''} style={{cursor:'pointer'}}>
             <td className="mono">{short(t.id)}</td><td>{t.quantity.toLocaleString()} vTBILL</td><td>{t.paymentAmount.toLocaleString()} vUSDC</td><td><span className={`badge ${t.status==='SETTLED'?'green':t.status==='READY'?'violet':'blue'}`}>{t.status}</span></td><td className="mono muted">{short(t.commitment)}</td>
-          </tr>):<tr><td colSpan={5} className="empty-cell">Connect a participant wallet and sign the access message to reveal its private matched trades.</td></tr>}
+          </tr>):<tr><td colSpan={5} className="empty-cell">Connect & sign in once to reveal matched trades for this wallet.</td></tr>}
         </tbody></table></div>
       </section>
 

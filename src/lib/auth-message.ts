@@ -1,40 +1,27 @@
-export type OrderAuthorization = {
+export type WalletSessionAuthorization = {
   walletAddress: string;
   requestId: string;
   issuedAt: string;
-  assetId: string;
-  side: 'BUY' | 'SELL';
-  price: number;
-  quantity: number;
-  notes?: string;
+  origin: string;
 };
 
-export function buildOrderAuthorization(v: OrderAuthorization) {
+export function buildWalletSessionAuthorization(v: WalletSessionAuthorization) {
   return [
-    'VeilTrade private order authorization',
+    'VeilTrade session authorization',
+    '',
+    'Sign in once to authorize private trading and trade access for this browser session.',
+    'This is not a transaction and does not spend HSK.',
+    '',
     `Wallet: ${v.walletAddress}`,
     `Request: ${v.requestId}`,
-    `Asset: ${v.assetId}`,
-    `Side: ${v.side}`,
-    `Price: ${v.price}`,
-    `Quantity: ${v.quantity}`,
-    `Notes: ${v.notes || ''}`,
+    `Origin: ${v.origin}`,
     `Issued At: ${v.issuedAt}`,
     'Chain ID: 133',
+    'Session: 12 hours',
   ].join('\n');
 }
 
-export function buildTradeAccessAuthorization(walletAddress: string, requestId: string, issuedAt: string) {
-  return [
-    'VeilTrade private trade access',
-    `Wallet: ${walletAddress}`,
-    `Request: ${requestId}`,
-    `Issued At: ${issuedAt}`,
-    'Chain ID: 133',
-  ].join('\n');
-}
-
-export function isFresh(issuedAt: string, maxAgeMs = 5 * 60_000) {
+export function isFresh(issuedAt: string, maxAgeMs = 12 * 60 * 60_000) {
   const ts = Date.parse(issuedAt);
-  return Number.isFinite(ts) && Math.abs(Date.now() - ts) <= maxAgeMs;
+  return Number.isFinite(ts) && Date.now() >= ts - 60_000 && Date.now() - ts <= maxAgeMs;
 }

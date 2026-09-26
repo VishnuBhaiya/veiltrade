@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { EyeOff, Landmark, LockKeyhole, Network, RefreshCw, Scale, Sparkles } from 'lucide-react';
 import { AppChrome } from './AppChrome';
-import { buildOrderAuthorization } from '@/lib/auth-message';
 
 type PublicOrder = {
   id: string; assetId: string; side: 'BUY'|'SELL'; price: number; quantity: number;
@@ -42,39 +41,31 @@ export function TradingTerminal() {
 
   async function placeOrder() {
     try {
-      setBusy(true); setFeedback('');
-      if (!wallet) throw new Error('Connect your wallet first.');
-      if (!window.ethereum) throw new Error('MetaMask is required.');
-
-      const requestId = crypto.randomUUID();
-      const issuedAt = new Date().toISOString();
-      const payload = {
-        walletAddress: wallet,
-        requestId,
-        issuedAt,
-        assetId: 'asset-vtbill',
-        side,
-        price: Number(price),
-        quantity: Number(quantity),
-        notes: note,
-      };
-      const message = buildOrderAuthorization(payload);
-      const signature: string = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, wallet],
-      });
+      setBusy(true);
+      setFeedback('');
+      if (!wallet) throw new Error('Connect & sign in once first.');
 
       const res = await fetch('/api/orders', {
         method:'POST',
         headers:{'content-type':'application/json'},
-        body:JSON.stringify({ ...payload, signature }),
+        body:JSON.stringify({
+          assetId:'asset-vtbill',
+          side,
+          price:Number(price),
+          quantity:Number(quantity),
+          notes:note,
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Order could not be created.');
+      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'Order could not be created.');
+
       setFeedback(`Private ${side.toLowerCase()} intent committed: ${short(data.order.commitment)}`);
       await refresh();
-    } catch (e:any) { setFeedback(e.message || 'Order failed'); }
-    finally { setBusy(false); }
+    } catch (e:any) {
+      setFeedback(e.message || 'Order failed');
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function runMatcher() {
@@ -102,9 +93,9 @@ export function TradingTerminal() {
 
       <div className="demo-banner">
         <span className="demo-banner-label">3-minute demo</span>
-        <span><b>1.</b> Connect + sign a private order</span><span className="demo-arrow">→</span>
-        <span><b>2.</b> Match compatible orders</span><span className="demo-arrow">→</span>
-        <span><b>3.</b> Settle atomically on HSK</span>
+        <span><b>1.</b> Sign in once</span><span className="demo-arrow">→</span>
+        <span><b>2.</b> Create private orders without repeated signatures</span><span className="demo-arrow">→</span>
+        <span><b>3.</b> Match + settle on HSK</span>
       </div>
 
       <div className="metrics">
@@ -132,14 +123,14 @@ export function TradingTerminal() {
         </section>
 
         <section className="panel">
-          <div className="panel-head"><div><div className="panel-title">Create private intent</div><div className="panel-sub">{wallet ? 'Wallet connected · signature required per order' : 'Connect wallet first'}</div></div><span className="badge green">vTBILL</span></div>
+          <div className="panel-head"><div><div className="panel-title">Create private intent</div><div className="panel-sub">{wallet ? 'Session authenticated · no repeated signatures' : 'Connect & sign in once'}</div></div><span className="badge green">vTBILL</span></div>
           <div className="form">
             <div className="segmented"><button className={`seg ${side==='BUY'?'active-buy':''}`} onClick={()=>setSide('BUY')}>BUY</button><button className={`seg ${side==='SELL'?'active-sell':''}`} onClick={()=>setSide('SELL')}>SELL</button></div>
             <div className="two"><div><label className="label">Limit price (vUSDC)</label><input className="input" value={price} onChange={e=>setPrice(e.target.value)} /></div><div><label className="label">Quantity (vTBILL)</label><input className="input" value={quantity} onChange={e=>setQuantity(e.target.value)} /></div></div>
             <label className="label">Private execution note</label><textarea className="textarea" rows={3} value={note} onChange={e=>setNote(e.target.value)} />
-            <div className="note"><b>What does the wallet sign?</b><br/>Only this order authorization. Your private key never leaves MetaMask, and the note is encrypted before persistent storage.</div>
-            <button className="btn btn-primary" style={{width:'100%',marginTop:14}} onClick={placeOrder} disabled={busy||!wallet}>{busy?'Working…':`Sign & commit ${side} order`}</button>
-            {feedback && <div className={feedback.includes('failed') || feedback.includes('Connect') || feedback.includes('required') ? 'error':'success'}>{feedback}</div>}
+            <div className="note"><b>One signature, not one per order.</b><br/>Your first wallet sign-in creates a 12-hour browser session. Orders after that use the authenticated session; MetaMask only appears again for real blockchain transactions or after the session expires.</div>
+            <button className="btn btn-primary" style={{width:'100%',marginTop:14}} onClick={placeOrder} disabled={busy||!wallet}>{busy?'Working…':`Commit ${side} order`}</button>
+            {feedback && <div className={feedback.includes('failed') || feedback.includes('Connect') ? 'error':'success'}>{feedback}</div>}
           </div>
         </section>
       </div>
