@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { EyeOff, Landmark, LockKeyhole, Network, RefreshCw, Scale, Sparkles } from 'lucide-react';
 import { AppChrome } from './AppChrome';
+import { buildOrderAuthorization } from '@/lib/auth-message';
 
 type PublicOrder = {
   id: string; assetId: string; side: 'BUY'|'SELL'; price: number; quantity: number;
@@ -17,7 +18,7 @@ const short = (v:string) => v.length > 16 ? `${v.slice(0,8)}…${v.slice(-6)}` :
 export function TradingTerminal() {
   const [orders, setOrders] = useState<PublicOrder[]>([]);
   const [trades, setTrades] = useState<PublicTrade[]>([]);
-  const [, setWallet] = useState('');
+  const [wallet, setWallet] = useState('');
   const [side, setSide] = useState<'BUY'|'SELL'>('BUY');
   const [price, setPrice] = useState('10.11');
   const [quantity, setQuantity] = useState('75000');
@@ -42,9 +43,34 @@ export function TradingTerminal() {
   async function placeOrder() {
     try {
       setBusy(true); setFeedback('');
-      const res = await fetch('/api/orders', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ assetId:'asset-vtbill', side, price:Number(price), quantity:Number(quantity), notes:note }) });
+      if (!wallet) throw new Error('Connect your wallet first.');
+      if (!window.ethereum) throw new Error('MetaMask is required.');
+
+      const requestId = crypto.randomUUID();
+      const issuedAt = new Date().toISOString();
+      const payload = {
+        walletAddress: wallet,
+        requestId,
+        issuedAt,
+        assetId: 'asset-vtbill',
+        side,
+        price: Number(price),
+        quantity: Number(quantity),
+        notes: note,
+      };
+      const message = buildOrderAuthorization(payload);
+      const signature: string = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [message, wallet],
+      });
+
+      const res = await fetch('/api/orders', {
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({ ...payload, signature }),
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error === 'wallet login required' ? 'Connect and sign in with your wallet first.' : 'Order could not be created.');
+      if (!res.ok) throw new Error(data.error || 'Order could not be created.');
       setFeedback(`Private ${side.toLowerCase()} intent committed: ${short(data.order.commitment)}`);
       await refresh();
     } catch (e:any) { setFeedback(e.message || 'Order failed'); }
@@ -56,7 +82,7 @@ export function TradingTerminal() {
       setBusy(true); setFeedback('');
       const res = await fetch('/api/match', { method:'POST' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error === 'wallet login required' ? 'Connect and sign in with your wallet first.' : 'Matcher failed.');
+      if (!res.ok) throw new Error(data.error || 'Matcher failed.');
       setFeedback(data.matched ? `${data.matched} confidential match${data.matched>1?'es':''} created.` : 'No crossing orders at the moment.');
       await refresh();
     } catch(e:any) { setFeedback(e.message || 'Matcher failed'); }
@@ -76,7 +102,7 @@ export function TradingTerminal() {
 
       <div className="demo-banner">
         <span className="demo-banner-label">3-minute demo</span>
-        <span><b>1.</b> Create a private order</span><span className="demo-arrow">→</span>
+        <span><b>1.</b> Connect + sign a private order</span><span className="demo-arrow">→</span>
         <span><b>2.</b> Match compatible orders</span><span className="demo-arrow">→</span>
         <span><b>3.</b> Settle atomically on HSK</span>
       </div>
@@ -85,12 +111,12 @@ export function TradingTerminal() {
         <div className="metric"><small>Best bid</small><strong>${bestBid.toFixed(2)}</strong><div className="delta">Private institutional intent</div></div>
         <div className="metric"><small>Best ask</small><strong>${bestAsk.toFixed(2)}</strong><div className="delta">Committed order flow</div></div>
         <div className="metric"><small>Indicative spread</small><strong>${spread.toFixed(2)}</strong><div className="delta">Price-time priority</div></div>
-        <div className="metric"><small>Gross open intent</small><strong>{money.format(grossIntent)}</strong><div className="delta">Sensitive details encrypted off-chain</div></div>
+        <div className="metric"><small>Gross open intent</small><strong>{money.format(grossIntent)}</strong><div className="delta">Sensitive details encrypted in Supabase</div></div>
       </div>
 
       <div className="dashboard-grid">
         <section className="panel">
-          <div className="panel-head"><div><div className="panel-title">Confidential order book</div><div className="panel-sub">Public demo shows price levels; identities remain hidden behind commitments</div></div><span className="badge blue"><LockKeyhole size={11}/> pre-trade private</span></div>
+          <div className="panel-head"><div><div className="panel-title">Confidential order book</div><div className="panel-sub">Price levels are public; identities stay behind commitments</div></div><span className="badge blue"><LockKeyhole size={11}/> pre-trade private</span></div>
           <div className="table-wrap">
             <table><thead><tr><th>Side</th><th>Price</th><th>Remaining</th><th>Commitment</th><th>Status</th></tr></thead>
               <tbody>
@@ -100,27 +126,27 @@ export function TradingTerminal() {
           </div>
           <div className="privacy-strip">
             <div className="privacy-item"><small>Identity</small><strong>Hidden from market participants</strong></div>
-            <div className="privacy-item"><small>Private payload</small><strong>AES-GCM encrypted</strong></div>
+            <div className="privacy-item"><small>Private payload</small><strong>Encrypted inside Postgres</strong></div>
             <div className="privacy-item"><small>Integrity</small><strong>SHA-256 order commitment</strong></div>
           </div>
         </section>
 
         <section className="panel">
-          <div className="panel-head"><div><div className="panel-title">Create private intent</div><div className="panel-sub">Wallet signature required</div></div><span className="badge green">vTBILL</span></div>
+          <div className="panel-head"><div><div className="panel-title">Create private intent</div><div className="panel-sub">{wallet ? 'Wallet connected · signature required per order' : 'Connect wallet first'}</div></div><span className="badge green">vTBILL</span></div>
           <div className="form">
             <div className="segmented"><button className={`seg ${side==='BUY'?'active-buy':''}`} onClick={()=>setSide('BUY')}>BUY</button><button className={`seg ${side==='SELL'?'active-sell':''}`} onClick={()=>setSide('SELL')}>SELL</button></div>
             <div className="two"><div><label className="label">Limit price (vUSDC)</label><input className="input" value={price} onChange={e=>setPrice(e.target.value)} /></div><div><label className="label">Quantity (vTBILL)</label><input className="input" value={quantity} onChange={e=>setQuantity(e.target.value)} /></div></div>
             <label className="label">Private execution note</label><textarea className="textarea" rows={3} value={note} onChange={e=>setNote(e.target.value)} />
-            <div className="note"><b>What hits the public chain?</b><br/>The production privacy path anchors a commitment/proof, not the plaintext order. The functional DvP MVP remains available for HSK testnet settlement.</div>
-            <button className="btn btn-primary" style={{width:'100%',marginTop:14}} onClick={placeOrder} disabled={busy}>{busy?'Working…':`Commit ${side} order`}</button>
-            {feedback && <div className={feedback.includes('failed') || feedback.includes('Connect') ? 'error':'success'}>{feedback}</div>}
+            <div className="note"><b>What does the wallet sign?</b><br/>Only this order authorization. Your private key never leaves MetaMask, and the note is encrypted before persistent storage.</div>
+            <button className="btn btn-primary" style={{width:'100%',marginTop:14}} onClick={placeOrder} disabled={busy||!wallet}>{busy?'Working…':`Sign & commit ${side} order`}</button>
+            {feedback && <div className={feedback.includes('failed') || feedback.includes('Connect') || feedback.includes('required') ? 'error':'success'}>{feedback}</div>}
           </div>
         </section>
       </div>
 
       <div style={{height:16}} />
       <section className="panel">
-        <div className="panel-head"><div><div className="panel-title">Verified settlement tape</div><div className="panel-sub">The public view exposes proof state and transaction identity, not confidential trade terms</div></div><span className="badge green"><Scale size={11}/> atomic DvP</span></div>
+        <div className="panel-head"><div><div className="panel-title">Verified settlement tape</div><div className="panel-sub">Public proof state without confidential commercial terms</div></div><span className="badge green"><Scale size={11}/> atomic DvP</span></div>
         <div className="table-wrap"><table><thead><tr><th>Trade</th><th>Commitment</th><th>Proof</th><th>Counterparties</th><th>Amount</th><th>Status</th></tr></thead><tbody>
           {trades.map(t=><tr key={t.id}><td className="mono">{short(t.id)}</td><td className="mono muted">{short(t.commitment)}</td><td>{t.proofHash?<span className="badge green">VERIFIED</span>:<span className="badge orange">PENDING</span>}</td><td><span className="badge"><EyeOff size={11}/> PRIVATE</span></td><td>••••••••</td><td><span className="badge blue">{t.status}</span></td></tr>)}
         </tbody></table></div>
