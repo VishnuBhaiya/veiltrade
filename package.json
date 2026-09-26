@@ -2,15 +2,15 @@
   "name": "veiltrade",
   "version": "0.1.0",
   "private": true,
+  "engines": { "node": "20.x" },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "contracts:compile": "hardhat compile",
     "contracts:test": "hardhat test",
-    "contracts:deploy": "hardhat run scripts/deploy.ts --network hashkeyTestnet",
-    "contracts:seed": "hardhat run scripts/seed-chain.ts --network hashkeyTestnet"
+    "contracts:deploy": "hardhat run scripts/deploy.js --network hashkeyTestnet",
+    "contracts:seed": "hardhat run scripts/seed-chain.js --network hashkeyTestnet"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
