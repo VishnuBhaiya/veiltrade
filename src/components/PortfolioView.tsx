@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Coins, Droplets, Landmark, RefreshCw, ShieldCheck, Sparkles, WalletCards } from 'lucide-react';
+import { ArrowRight, Coins, Droplets, Landmark, RefreshCw, Rocket, ShieldCheck, Sparkles, WalletCards } from 'lucide-react';
 import { AppChrome } from './AppChrome';
 
 type Balance = {
@@ -71,6 +71,7 @@ export function PortfolioView(){
       </div>
       <div className="hero-actions-row">
         <span className="badge violet"><ShieldCheck size={11}/> SANDBOX BALANCES</span>
+        <Link className="btn" href="/deploy"><Rocket size={14}/> HSK launchpad</Link>
         <button className="btn" onClick={()=>load().catch(e=>setMessage(e.message))} disabled={!wallet||busy}><RefreshCw size={14}/> Refresh</button>
         <button className="btn btn-primary" onClick={faucet} disabled={!wallet||busy}><Droplets size={14}/> {busy?'Funding…':'Get demo assets'}</button>
       </div>

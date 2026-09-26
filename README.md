@@ -45,6 +45,7 @@ The production web app only enables the real HSK settlement transaction buttons 
 - `/orderbook` — isolated private order books
 - `/matches` — cross-market match queue
 - `/portfolio` — demo wallet inventory + faucet
+- `/deploy` — one-transaction HSK testnet launchpad
 - `/settlement` — HSK atomic DvP workbench
 - `/regulator` — selective disclosure
 - `/admin` — compliance + fund administration
@@ -94,3 +95,17 @@ npm run dev
 **Primary:** Blockchain Infrastructure  
 **Use case:** RWA / institutional settlement  
 **Supporting:** Payments, stablecoins, privacy and compliance
+
+
+## HSK launchpad
+
+The browser launchpad uses `VeilDemoBootstrap.sol` so a hackathon wallet can deploy the functional **vTBILL / vUSDC** settlement stack with one MetaMask-approved contract creation transaction. The deployed bootstrap creates:
+
+- `MockUSDC`
+- `MockRWA` (vTBILL)
+- `EligibilityRegistry`
+- `VeilSettlement`
+
+The deployer is provisioned with test assets and eligibility during construction. A second demo wallet can call `claimDemoAssets()` once to receive test vUSDC, vTBILL and eligibility. The app verifies the HSK receipt and reads the deployed child addresses before registering them in the public deployment registry.
+
+This helper is explicitly for the HSK testnet hackathon demo. It does not change the confidentiality limitations of ordinary ERC-20 settlement.

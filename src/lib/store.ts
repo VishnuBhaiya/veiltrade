@@ -215,3 +215,47 @@ export async function topUpDemoPortfolio(walletAddress: string) {
   if (error) throw error;
   return data;
 }
+
+
+export type ChainDeployment = {
+  bootstrapAddress: string;
+  settlementAddress: string;
+  usdcAddress: string;
+  rwaAddress: string;
+  registryAddress: string;
+  deployerWallet: string;
+  txHash: string;
+  createdAt?: string;
+};
+
+export async function getChainDeployment(): Promise<ChainDeployment | null> {
+  const { data, error } = await db().rpc('veil_public_chain_deployment');
+  if (error) throw error;
+  const r = data?.[0];
+  if (!r) return null;
+  return {
+    bootstrapAddress: r.bootstrap_address,
+    settlementAddress: r.settlement_address,
+    usdcAddress: r.usdc_address,
+    rwaAddress: r.rwa_address,
+    registryAddress: r.registry_address,
+    deployerWallet: r.deployer_wallet,
+    txHash: r.tx_hash,
+    createdAt: r.created_at,
+  };
+}
+
+export async function setChainDeployment(key: string, input: Omit<ChainDeployment, 'createdAt'>) {
+  const { data, error } = await db().rpc('veil_set_demo_chain_deployment', {
+    p_key: key,
+    p_bootstrap_address: input.bootstrapAddress,
+    p_settlement_address: input.settlementAddress,
+    p_usdc_address: input.usdcAddress,
+    p_rwa_address: input.rwaAddress,
+    p_registry_address: input.registryAddress,
+    p_deployer_wallet: input.deployerWallet,
+    p_tx_hash: input.txHash,
+  });
+  if (error) throw error;
+  return data;
+}
