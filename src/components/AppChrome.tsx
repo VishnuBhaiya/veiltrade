@@ -8,12 +8,12 @@ import { Brand } from './Brand';
 import { WalletButton } from './WalletButton';
 
 const items = [
-  { href: '/app', label: 'Trading terminal', icon: Activity },
-  { href: '/orderbook', label: 'Private order book', icon: BookOpen },
+  { href: '/app', label: 'Markets', icon: Activity },
+  { href: '/orderbook', label: 'Order book', icon: BookOpen },
   { href: '/matches', label: 'Matches', icon: ArrowDownUp },
   { href: '/settlement', label: 'HSK settlement', icon: Blocks },
   { href: '/regulator', label: 'Regulator view', icon: FileKey2 },
-  { href: '/admin', label: 'Compliance admin', icon: ShieldCheck },
+  { href: '/admin', label: 'Compliance & funds', icon: ShieldCheck },
 ];
 
 export function AppChrome({ children, showWallet = true, onAuthenticated }: { children: ReactNode; showWallet?: boolean; onAuthenticated?: (address: string) => void; }) {
@@ -29,12 +29,12 @@ export function AppChrome({ children, showWallet = true, onAuthenticated }: { ch
       </header>
       <div className="app-grid">
         <aside className="sidebar">
-          <div className="sidebar-label">Workspace</div>
+          <div className="sidebar-label">Institutional workspace</div>
           <nav className="sidebar-nav">
             {items.map(({ href, label, icon: Icon }) => {
               const active = pathname === href;
               return (
-                <Link key={href} href={href} className={`side-link ${active ? 'active' : ''}`}>
+                <Link key={href} href={href} className={'side-link ' + (active ? 'active' : '')}>
                   <span className="side-icon"><Icon size={17} /></span>
                   <span>{label}</span>
                   {active && <span className="active-dot" />}
@@ -43,14 +43,15 @@ export function AppChrome({ children, showWallet = true, onAuthenticated }: { ch
             })}
           </nav>
           <div className="sidebar-demo-card">
-            <div className="sidebar-demo-title"><Sparkles size={14} /> Demo flow</div>
-            <div className="demo-mini-step"><b>1</b><span>Create private order</span></div>
-            <div className="demo-mini-step"><b>2</b><span>Match counterparties</span></div>
-            <div className="demo-mini-step"><b>3</b><span>Settle atomically on HSK</span></div>
+            <div className="sidebar-demo-title"><Sparkles size={14} /> Market flow</div>
+            <div className="demo-mini-step"><b>1</b><span>Choose tokenized fund</span></div>
+            <div className="demo-mini-step"><b>2</b><span>Create private intent</span></div>
+            <div className="demo-mini-step"><b>3</b><span>Auto-match exact counterparty</span></div>
+            <div className="demo-mini-step"><b>4</b><span>Settle atomically on HSK</span></div>
           </div>
           <div className="sidebar-footnote">
-            <b>Privacy MVP</b>
-            <span>Order commitments are private by default. Full shielded settlement is the ZK extension.</span>
+            <b>Multi-asset privacy infrastructure</b>
+            <span>Each fund has an isolated order book while commitments hide institution identity.</span>
           </div>
         </aside>
         <main className="main">{children}</main>
