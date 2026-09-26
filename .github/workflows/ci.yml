@@ -6,12 +6,17 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -21,6 +26,18 @@ jobs:
         run: npm run build
       - name: Compile smart contracts
         run: npm run contracts:compile
+      - name: Export HSK bootstrap artifact
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p src/generated
+          cp artifacts/contracts/VeilDemoBootstrap.sol/VeilDemoBootstrap.json src/generated/VeilDemoBootstrap.json
+          git config user.name "veiltrade-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/generated/VeilDemoBootstrap.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Generate HSK bootstrap artifact [skip ci]"
+            git push origin HEAD:main
+          fi
       - name: Upload contract artifacts
         uses: actions/upload-artifact@v4
         with:
