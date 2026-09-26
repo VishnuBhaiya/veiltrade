@@ -194,3 +194,24 @@ export async function setInstitutionEligibility(key: string, walletAddress: stri
   if (error) throw error;
   return data;
 }
+
+
+export async function getDemoPortfolio(walletAddress: string) {
+  const { data, error } = await db().rpc('veil_demo_portfolio', { p_wallet: walletAddress });
+  if (error) throw error;
+  return (data || []).map((r: any) => ({
+    assetId: r.asset_id,
+    symbol: r.symbol,
+    name: r.name,
+    assetType: r.asset_type,
+    indicativePrice: Number(r.indicative_price || 0),
+    balance: Number(r.balance || 0),
+    updatedAt: r.updated_at,
+  }));
+}
+
+export async function topUpDemoPortfolio(walletAddress: string) {
+  const { data, error } = await db().rpc('veil_demo_faucet', { p_wallet: walletAddress });
+  if (error) throw error;
+  return data;
+}

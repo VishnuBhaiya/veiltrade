@@ -1,106 +1,75 @@
 # VeilTrade
 
-> **The blockchain verifies the trade without seeing the trade.**
+> **Private markets for tokenized real-world assets. Trade confidentially. Settle atomically. Disclose selectively.**
 
-VeilTrade is a confidential, compliance-aware settlement layer for tokenized real-world assets on **HSK Chain**. It combines wallet authentication, a private institutional order book, a price-time matching engine, encrypted order payloads, cryptographic commitments, compliance controls, atomic delivery-versus-payment (DvP), selective regulator disclosure, and a shielded ZK settlement extension.
+VeilTrade is a multi-market, compliance-aware infrastructure prototype for tokenized real-world assets on **HSK Chain**. It combines wallet authentication, isolated private order books, exact automatic matching, cryptographic commitments, compliance controls, selective regulator disclosure, a demo institutional portfolio, and an atomic delivery-versus-payment Solidity path.
 
 Built by **Team VeilForge** for the Sydney HSK Chain hackathon.
 
-## What works in the MVP
+## Live demo
 
-- MetaMask wallet-signature authentication
-- Dedicated private order-book and match views
-- Price-time priority matching with partial fills
-- Encrypted private order/trade metadata
-- Public commitment-based market view
-- Compliance eligibility registry
-- Atomic RWA ↔ stablecoin DvP Solidity contract
-- HSKChain Testnet configuration (Chain ID **133**)
-- Regulator selective-disclosure console
-- Supabase/PostgreSQL schema and persistence path
-- Noir circuit scaffold
-- Commitment/nullifier confidential-settlement contract
+Production: `https://veiltrade.vercel.app`
 
-## Architecture
+### Demo markets
+- **vTBILL / vUSDC** — Veil Tokenized Treasury Fund
+- **vMMF / vUSDC** — Veil Money Market Fund
+- **vBOND / vUSDC** — Veil Investment Grade Bond Fund
 
-```text
-Institution wallets
-      │
-      ├── signed login
-      ▼
-Next.js app
-      │
-      ├── encrypted order payloads ──► Supabase/Postgres
-      ├── cryptographic commitments
-      ▼
-Price-time matching engine
-      │
-      ├── matched trade commitment
-      └── encrypted regulator disclosure
-      ▼
-HSK Chain
-      │
-      ├── EligibilityRegistry.sol
-      ├── VeilSettlement.sol
-      └── ConfidentialSettlement.sol
-                 │
-                 └── Noir ZK verifier path
-```
+## What works in the cloud demo
 
-## HSK Chain
+- One MetaMask signature creates a 12-hour VeilTrade browser session.
+- Multi-fund market selector and isolated order books.
+- Exact automatic matching: same asset + same price + same quantity + opposite side + different wallet.
+- Matched orders disappear from active liquidity immediately.
+- Public market APIs redact institution identity and commercial trade fields.
+- Encrypted private order and regulator payloads in Supabase/Postgres.
+- Regulator selective-disclosure console.
+- Compliance institution registry and fund administration.
+- Demo portfolio and idempotent **Get demo assets** faucet.
+- Persistent settlement lifecycle fields for HSK confirmations.
+- Solidity contracts and tests for eligibility-gated atomic DvP.
+- Noir circuit scaffold plus a commitment/nullifier shielded-settlement extension.
 
-- Network: `HSKChain Testnet`
-- Chain ID: `133`
-- Gas token: `HSK`
-- RPC: `https://testnet.hsk.xyz`
-- Explorer: `https://testnet-explorer.hsk.xyz`
+## Important privacy / deployment truthfulness
 
-The functional `VeilSettlement.sol` path performs eligibility-gated atomic DvP. Both legs either transfer together or the transaction reverts.
+The current cloud demo provides **pre-trade/application confidentiality**, commitment-based public views and selective disclosure. Standard ERC-20 transfers on the functional `VeilSettlement.sol` path are public on-chain. `ConfidentialSettlement.sol` and the Noir circuit represent the shielded extension.
 
-## Privacy model
+`DemoVerifier.sol` is development-only and is **not** a production ZK verifier.
 
-### Working MVP
-- Market views hide institution identity.
-- Orders are bound by cryptographic commitments.
-- Private payloads are encrypted server-side.
-- Public trade APIs redact counterparties and amounts.
-- Authorized regulator access can disclose encrypted trade records.
-
-### Shielded extension
-`ConfidentialSettlement.sol` implements commitments, nullifiers and a pluggable ZK-verifier interface. The Noir circuit in `circuits/private_trade` is the privacy-proof prototype.
-
-**Important:** `DemoVerifier.sol` is development-only. The public ERC-20 DvP path is verifiable, but its final on-chain transfers are not confidential.
+The production web app only enables the real HSK settlement transaction buttons after deployed public contract addresses are configured. Until then, the Portfolio page labels its faucet balances as **demo sandbox inventory**, not on-chain assets.
 
 ## Routes
 
 - `/` — product landing page
-- `/app` — advanced trading terminal
-- `/orderbook` — private order book
-- `/matches` — match queue
+- `/app` — multi-fund trading terminal
+- `/orderbook` — isolated private order books
+- `/matches` — cross-market match queue
+- `/portfolio` — demo wallet inventory + faucet
 - `/settlement` — HSK atomic DvP workbench
 - `/regulator` — selective disclosure
-- `/admin` — compliance administration
+- `/admin` — compliance + fund administration
 
-## Local quick start
+## HSK Chain
 
-```bash
-npm install
-cp .env.example .env.local
-npm run dev
-```
+- Network: **HSKChain Testnet**
+- Chain ID: **133**
+- RPC: `https://testnet.hsk.xyz`
+- Explorer: `https://testnet-explorer.hsk.xyz`
 
-Without Supabase credentials the application runs with an in-memory seeded demo store.
+The functional `VeilSettlement.sol` contract re-checks eligibility at settlement time and transfers the RWA and payment legs in one transaction. Either both transfers complete or the transaction reverts.
 
-## Supabase
+## Demo flow
 
-Apply:
-
-```text
-supabase/migrations/001_init.sql
-supabase/seed.sql
-```
-
-Then configure the Supabase URL, anon key and service-role key in the deployment environment.
+1. Open **Demo walkthrough** in the top bar.
+2. Connect an HSK-compatible wallet and sign in once.
+3. Open **Portfolio** and use **Get demo assets** for sandbox inventory.
+4. Select vTBILL, vMMF or vBOND.
+5. Create an order from wallet A.
+6. Create the exact opposite order — same fund, price and quantity — from wallet B.
+7. VeilTrade auto-matches immediately; there is no manual matcher button.
+8. Show **Matches** where identities and amounts remain redacted.
+9. Open **Regulator View** to selectively disclose the committed record.
+10. If HSK contract addresses are configured, continue through allowance → anchor → two-party approval → atomic DvP.
 
 ## Smart contracts
 
@@ -112,23 +81,16 @@ Then configure the Supabase URL, anon key and service-role key in the deployment
 - `ConfidentialSettlement.sol`
 - `DemoVerifier.sol`
 
-## Demo flow
+## Local quick start
 
-1. Connect an HSK-compatible wallet.
-2. Create a private buy or sell intent.
-3. Create a crossing counter-order.
-4. Run the matching engine.
-5. Show the match while identity and amount remain redacted publicly.
-6. Open regulator view to selectively disclose the same trade.
-7. Open HSK settlement.
-8. Approve assets and both counterparties.
-9. Execute atomic DvP.
-10. Open the transaction in the HSK explorer.
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
 
 ## Track
 
 **Primary:** Blockchain Infrastructure  
 **Use case:** RWA / institutional settlement  
 **Supporting:** Payments, stablecoins, privacy and compliance
-
-See `docs/TECHNICAL.md`, `docs/SECURITY.md`, `docs/DEMO_SCRIPT.md`, and `docs/PITCH_QA.md` for the architecture and pitch material.
