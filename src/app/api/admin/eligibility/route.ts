@@ -8,24 +8,23 @@ const Input = z.object({
   kycLevel: z.number().int().min(0).max(4),
 });
 
-function expectedAdminKey() {
-  const configured = process.env.ADMIN_DEMO_KEY;
-  if (configured) return configured;
-  return process.env.NODE_ENV === 'development' ? 'veiltrade-admin-demo' : null;
-}
-
-export async function GET() {
-  return NextResponse.json({ institutions: await listInstitutions() });
+export async function GET(req: NextRequest) {
+  const key = req.headers.get('x-admin-key') || '';
+  try {
+    return NextResponse.json({ institutions: await listInstitutions(key) });
+  } catch {
+    return NextResponse.json({ error: 'unauthorized admin key' }, { status: 401 });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const expected = expectedAdminKey();
-  if (!expected) return NextResponse.json({ error: 'admin access is not configured' }, { status: 503 });
-  if (req.headers.get('x-admin-key') !== expected) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
+  const key = req.headers.get('x-admin-key') || '';
   const parsed = Input.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const result = await setInstitutionEligibility(parsed.data.walletAddress, parsed.data.eligible, parsed.data.kycLevel);
-  return NextResponse.json({ ok: true, result });
+  try {
+    const result = await setInstitutionEligibility(key, parsed.data.walletAddress, parsed.data.eligible, parsed.data.kycLevel);
+    return NextResponse.json({ ok: true, result });
+  } catch {
+    return NextResponse.json({ error: 'unauthorized or invalid update' }, { status: 401 });
+  }
 }

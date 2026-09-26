@@ -1,16 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const FALLBACK_PROJECT_URL = 'https://xbbktcezmhphvtheyqwf.supabase.co';
+const SUPABASE_URL = 'https://xbbktcezmhphvtheyqwf.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FBEN8LHWLt2bIJ8yWL4x4w_poYRkaZN';
 
 export function hasSupabase() {
-  return Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return true;
 }
 
 export function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_PROJECT_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');
-  return createClient(url, key, {
+  return createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

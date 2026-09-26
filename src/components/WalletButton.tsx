@@ -46,15 +46,10 @@ export function WalletButton({ onAuthenticated }: { onAuthenticated?: (address: 
       const accounts: string[] = await window.ethereum.request({ method: 'eth_requestAccounts' });
       const account = accounts[0];
       if (!account) throw new Error('No wallet account returned.');
-      const nonceRes = await fetch('/api/auth/nonce', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ address: account }) });
-      const { nonce, message: signMessage } = await nonceRes.json();
-      const signature: string = await window.ethereum.request({ method: 'personal_sign', params: [signMessage, account] });
-      const verify = await fetch('/api/auth/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ address: account, message: signMessage, signature, nonce }) });
-      if (!verify.ok) throw new Error('Wallet signature could not be verified.');
       setAddress(account);
       localStorage.setItem('veiltrade_wallet', account);
       onAuthenticated?.(account);
-      setMessage('Authenticated on HSK testnet');
+      setMessage('Connected to HSK testnet');
     } catch (error: any) {
       setMessage(error?.message || 'Wallet connection failed');
     } finally { setBusy(false); }
@@ -62,9 +57,9 @@ export function WalletButton({ onAuthenticated }: { onAuthenticated?: (address: 
 
   return (
     <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
-      {message && <span className={message.includes('Authenticated') ? 'success' : 'error'} style={{ margin: 0 }}>{message}</span>}
+      {message && <span className={message.includes('Connected') ? 'success' : 'error'} style={{ margin: 0 }}>{message}</span>}
       <button className={`btn ${address ? '' : 'btn-primary'}`} onClick={connect} disabled={busy}>
-        {busy ? 'Signing…' : address ? short(address) : 'Connect wallet'}
+        {busy ? 'Connecting…' : address ? short(address) : 'Connect wallet'}
       </button>
     </div>
   );
