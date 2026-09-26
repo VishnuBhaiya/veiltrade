@@ -1,6 +1,6 @@
 'use client';
 
-import { createWalletClient, custom, keccak256, stringToHex } from 'viem';
+import { createPublicClient, createWalletClient, custom, http, keccak256, stringToHex } from 'viem';
 import { hashkeyTestnet } from './hsk';
 import { erc20Abi, veilSettlementAbi } from './contracts';
 
@@ -9,7 +9,18 @@ function wallet() {
   return createWalletClient({ chain: hashkeyTestnet, transport: custom(window.ethereum) });
 }
 
+const publicClient = createPublicClient({
+  chain: hashkeyTestnet,
+  transport: http(process.env.NEXT_PUBLIC_HSK_RPC_URL || 'https://testnet.hsk.xyz'),
+});
+
 export function bytes32FromId(id: string) { return keccak256(stringToHex(id)); }
+
+export async function waitForHskTransaction(hash: `0x${string}`) {
+  const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 120_000 });
+  if (receipt.status !== 'success') throw new Error('HSK transaction reverted.');
+  return receipt;
+}
 
 export async function approveToken(token: `0x${string}`, spender: `0x${string}`, amount: bigint, account: `0x${string}`) {
   const client = wallet();

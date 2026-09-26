@@ -88,7 +88,24 @@ export async function listTradesForWallet(walletAddress: string): Promise<Trade[
     proofHash: r.proof_hash || undefined,
     txHash: r.tx_hash || undefined,
     createdAt: r.created_at,
+    buyerAllowanceTxHash: r.buyer_allowance_tx_hash || undefined,
+    sellerAllowanceTxHash: r.seller_allowance_tx_hash || undefined,
+    anchoredTxHash: r.anchored_tx_hash || undefined,
+    buyerApproved: Boolean(r.buyer_approved),
+    sellerApproved: Boolean(r.seller_approved),
+    settlementTxHash: r.settlement_tx_hash || undefined,
   }));
+}
+
+export async function updateTradeProgress(walletAddress: string, tradeId: string, action: 'ALLOWANCE'|'ANCHOR'|'APPROVE'|'SETTLE', txHash: string) {
+  const { data, error } = await db().rpc('veil_update_trade_progress', {
+    p_wallet: walletAddress,
+    p_trade_id: tradeId,
+    p_action: action,
+    p_tx_hash: txHash,
+  });
+  if (error) throw error;
+  return data as Trade;
 }
 
 export async function regulatorTrades(key: string) {

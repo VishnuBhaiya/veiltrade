@@ -60,4 +60,10 @@ export interface Trade extends MatchResult {
   txHash?: string;
   proofHash?: string;
   regulatorPayload?: string;
+  buyerAllowanceTxHash?: string;
+  sellerAllowanceTxHash?: string;
+  anchoredTxHash?: string;
+  buyerApproved?: boolean;
+  sellerApproved?: boolean;
+  settlementTxHash?: string;
 }
