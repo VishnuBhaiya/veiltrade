@@ -1,7 +1,72 @@
 import { getSupabaseAdmin } from './supabase';
-import type { Institution, Order, OrderSide, Trade } from './types';
+import type { Asset, Institution, Order, OrderSide, Trade } from './types';
 
 const db = () => getSupabaseAdmin();
+
+function mapAsset(r: any): Asset {
+  return {
+    id: r.id,
+    symbol: r.symbol,
+    name: r.name,
+    description: r.description || undefined,
+    issuer: r.issuer || undefined,
+    contractAddress: r.contract_address || undefined,
+    decimals: Number(r.decimals),
+    assetType: r.asset_type,
+    active: Boolean(r.active),
+    indicativePrice: r.indicative_price == null ? undefined : Number(r.indicative_price),
+    createdAt: r.created_at || undefined,
+  };
+}
+
+export async function listAssets(): Promise<Asset[]> {
+  const { data, error } = await db().rpc('veil_public_assets');
+  if (error) throw error;
+  return (data || []).map(mapAsset);
+}
+
+export async function listAdminAssets(key: string): Promise<Asset[]> {
+  const { data, error } = await db().rpc('veil_admin_assets', { p_key: key });
+  if (error) throw error;
+  return (data || []).map(mapAsset);
+}
+
+export async function upsertAsset(key: string, asset: {
+  id: string;
+  symbol: string;
+  name: string;
+  description?: string;
+  issuer?: string;
+  contractAddress?: string;
+  decimals: number;
+  assetType: 'RWA' | 'STABLECOIN';
+  indicativePrice: number;
+}) {
+  const { data, error } = await db().rpc('veil_admin_upsert_asset', {
+    p_key: key,
+    p_id: asset.id,
+    p_symbol: asset.symbol,
+    p_name: asset.name,
+    p_description: asset.description || '',
+    p_issuer: asset.issuer || '',
+    p_contract_address: asset.contractAddress || '',
+    p_decimals: asset.decimals,
+    p_asset_type: asset.assetType,
+    p_indicative_price: asset.indicativePrice,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function setAssetActive(key: string, id: string, active: boolean) {
+  const { data, error } = await db().rpc('veil_admin_set_asset_active', {
+    p_key: key,
+    p_id: id,
+    p_active: active,
+  });
+  if (error) throw error;
+  return data;
+}
 
 export async function listOrders(): Promise<Order[]> {
   const { data, error } = await db().rpc('veil_public_orders');
