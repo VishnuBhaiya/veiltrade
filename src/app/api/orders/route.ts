@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const order = await createOrder({
+    const result = await createOrder({
       id,
       walletAddress: session.walletAddress,
       assetId: body.assetId,
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       commitment,
       createdAt,
     });
-    return NextResponse.json({ order }, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
     const message = String(error?.message || error);
     const status = message.toLowerCase().includes('duplicate') ? 409 : 500;

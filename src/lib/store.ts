@@ -44,13 +44,12 @@ export async function createOrder(input: {
     p_created_at: input.createdAt,
   });
   if (error) throw error;
-  return data;
-}
-
-export async function runMatching() {
-  const { data, error } = await db().rpc('veil_run_matching');
-  if (error) throw error;
-  return Number(data || 0);
+  return data as {
+    order: Order;
+    autoMatched: boolean;
+    matchedCount: number;
+    tradeId?: string | null;
+  };
 }
 
 export async function listPublicTrades() {
