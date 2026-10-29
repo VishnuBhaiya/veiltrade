@@ -1,5 +1,7 @@
 # VeilTrade
 
+**Portfolio context:** a Team VeilForge hackathon prototype maintained by Vishnu Bhaiya, combining a Next.js interface, Supabase/Postgres application state and Solidity settlement experiments. See [project scope and demonstration limits](docs/PORTFOLIO.md).
+
 > **Private markets for tokenized real-world assets. Trade confidentially. Settle atomically. Disclose selectively.**
 
 VeilTrade is a multi-market, compliance-aware infrastructure prototype for tokenized real-world assets on **HSK Chain**. It combines wallet authentication, isolated private order books, exact automatic matching, cryptographic commitments, compliance controls, selective regulator disclosure, a demo institutional portfolio, and an atomic delivery-versus-payment Solidity path.
